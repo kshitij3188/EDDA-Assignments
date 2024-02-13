@@ -1,0 +1,134 @@
+---
+title: "Assignment 1"
+author: "Kshitij Kavimandan, Pablo Alves, Pooja Mangal group 015"
+date: "25 February 2024"
+output: pdf_document
+fontsize: 11pt
+highlight: tango
+---
+
+## Exercise 1
+
+**a)** Relevant plots and normality assessment:
+
+We will create a histogram and a Q-Q plot of the sample of video game scores to visually assess normality.
+
+```{r}
+# Load the data
+data <- read.csv("Ice_cream.csv")
+
+# Plot histogram
+hist(data$video, main="Histogram of Video Game Scores", xlab="Video Game Scores")
+
+# Plot Q-Q plot
+qqnorm(data$video)
+qqline(data$video)
+```
+
+After examining the plots, we can comment on the normality of the video game scores.
+
+### Constructing a bounded 97%-CI for \mu:
+
+```{r}
+# Calculate the mean and standard deviation of the sample
+sample_mean <- mean(data$video)
+sample_sd <- sd(data$video)
+
+# Calculate the margin of error
+margin_of_error <- qt(0.985, df = length(data$video) - 1) * (sample_sd / sqrt(length(data$video)))
+
+# Construct the CI
+lower_bound <- sample_mean - margin_of_error
+upper_bound <- sample_mean + margin_of_error
+```
+
+### Sample size needed for a 97%-CI with a maximum length of 3:
+
+```{r}
+# Calculate the required sample size
+required_sample_size <- (qt(0.985, df = 199) * sample_sd / 3) ^ 2
+```
+
+### Bootstrap 97%-CI for \mu:
+
+```{r}
+# Bootstrap function
+bootstrap_mean <- function(data, sample_size) {
+  bootstrap_samples <- replicate(10000, mean(sample(data, sample_size, replace = TRUE)))
+  ci_lower <- quantile(bootstrap_samples, 0.015)
+  ci_upper <- quantile(bootstrap_samples, 0.985)
+  return(c(ci_lower, ci_upper))
+}
+
+# Apply bootstrap function
+bootstrap_ci <- bootstrap_mean(data$video, length(data$video))
+```
+
+
+**b)** T-test to verify mean score:
+
+```{r}
+# Perform t-test
+t_test <- t.test(data$video, mu = 50, alternative = "greater")
+
+# Print t-test results and explanation of CI
+print(t_test)
+```
+
+Explanation of CI: The CI in the output represents the 95% confidence interval for the difference between the sample mean and the hypothesized mean ($\mu_0$). If the entire interval is above $\mu_0$, it suggests evidence for the alternative hypothesis.
+
+**c)** Sign test and test based on ranks:
+
+```{r}
+# Perform sign test
+sign_test <- binom.test(sum(data$video > 50), length(data$video), p = 0.5, alternative = "greater")
+
+# Perform Wilcoxon signed-rank test
+wilcox_test <- wilcox.test(data$video, mu = 50, alternative = "greater")
+
+# Test for fraction of scores less than 42
+binom_test <- binom.test(sum(data$video < 42), length(data$video), p = 0.25, alternative = "less")
+```
+
+**d)** Bootstrap test with test statistic T:
+
+```{r}
+# Bootstrap test function
+bootstrap_test <- function(data, num_samples) {
+  bootstrap_samples <- replicate(num_samples, min(sample(data, length(data), replace = TRUE)))
+  p_value <- mean(bootstrap_samples < min(data) | bootstrap_samples > 100)
+  return(p_value)
+}
+
+# Apply bootstrap test
+p_value <- bootstrap_test(data$video, 10000)
+
+# Apply Kolmogorov-Smirnov test
+ks_test <- ks.test(data$video, "pnorm", mean = 50, sd = 10)
+```
+
+**e)** Tests for male and female students:
+
+```{r}
+# Separate scores for male and female students
+male_scores <- data$video[data$female == 0]
+female_scores <- data$video[data$female == 1]
+
+# Perform two-sample t-test
+t_test_gender <- t.test(male_scores, female_scores, alternative = "greater")
+
+# Perform Mann-Whitney test
+mannwhitney_test <- wilcox.test(male_scores, female_scores, alternative = "greater")
+
+# Perform Kolmogorov-Smirnov test
+ks_test_gender <- ks.test(male_scores, female_scores)
+```
+
+f) Correlation and comparison between video game and puzzle scores:
+```{r}
+# Investigate correlation
+correlation <- cor(data$video, data$puzzle)
+
+# Test if puzzle scores are higher than video game scores
+wilcox_test_puzzle <- wilcox.test(data$puzzle, data$video, alternative = "greater")
+```
