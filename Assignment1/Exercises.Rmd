@@ -27,7 +27,7 @@ qqline(data$video)
 
 After examining the plots, we can comment on the normality of the video game scores.
 
-### Constructing a bounded 97%-CI for \mu:
+### Constructing a bounded 97%-CI for $\mu$:
 
 ```{r}
 # Calculate the mean and standard deviation of the sample
@@ -49,7 +49,7 @@ upper_bound <- sample_mean + margin_of_error
 required_sample_size <- (qt(0.985, df = 199) * sample_sd / 3) ^ 2
 ```
 
-### Bootstrap 97%-CI for \mu:
+### Bootstrap 97%-CI for $\mu$:
 
 ```{r}
 # Bootstrap function
