@@ -7,7 +7,7 @@ fontsize: 11pt
 highlight: tango
 ---
 
-## Exercise 1
+## Exercise 1. Ice cream
 
 **a)** Relevant plots and normality assessment:
 
@@ -132,3 +132,126 @@ correlation <- cor(data$video, data$puzzle)
 # Test if puzzle scores are higher than video game scores
 wilcox_test_puzzle <- wilcox.test(data$puzzle, data$video, alternative = "greater")
 ```
+
+## Exercise 2. Hemoglobin in trout
+
+a) R-code for randomization process:
+
+```{r}
+# Load the data
+hemoglobin_data <- read.table("hemoglobin.txt", header = TRUE)
+
+# Create a data frame to store the combinations of rate and method
+combinations <- expand.grid(rate = c(1, 2, 3, 4), method = c("A", "B"))
+
+# Randomly assign 80 fishes to the combinations
+set.seed(123)  # Set seed for reproducibility
+hemoglobin_data$fish <- sample(rep(1:80, length.out = nrow(hemoglobin_data)), replace = FALSE)
+
+# Merge the combinations with the hemoglobin data
+final_data <- merge(combinations, hemoglobin_data, by = "rate", all = TRUE)
+```
+
+**b)** Two-way ANOVA:
+
+```{r}
+# Perform two-way ANOVA
+anova_result <- aov(hemoglobin ~ rate * method, data = hemoglobin_data)
+
+# Print ANOVA table
+print(summary(anova_result))
+```
+
+**c)** Influence of factors and combination yielding highest hemoglobin:
+
+```{r}
+# Calculate means for rate and method
+mean_hemoglobin <- aggregate(hemoglobin ~ rate + method, data = hemoglobin_data, FUN = mean)
+
+# Find combination yielding highest hemoglobin
+max_hemoglobin <- mean_hemoglobin[which.max(mean_hemoglobin$hemoglobin), ]
+
+# Estimate mean hemoglobin value for rate 3 by using method A
+mean_hemoglobin_rate3_methodA <- mean_hemoglobin$hemoglobin[which(mean_hemoglobin$rate == 3 & mean_hemoglobin$method == "A")]
+
+# Estimate mean hemoglobin value for each rate
+mean_hemoglobin_rate <- aggregate(hemoglobin ~ rate, data = hemoglobin_data, FUN = mean)
+```
+
+**d)** One-way ANOVA:
+
+```{r}
+# Perform one-way ANOVA ignoring the variable method
+anova_result_rate <- aov(hemoglobin ~ rate, data = hemoglobin_data)
+
+# Print ANOVA table
+print(summary(anova_result_rate))
+```
+
+**e)** Kruskal-Wallis test:
+
+```{r}
+# Perform Kruskal-Wallis test
+kruskal_test_result <- kruskal.test(hemoglobin ~ rate, data = hemoglobin_data)
+
+# Print Kruskal-Wallis test result
+print(kruskal_test_result)
+```
+
+
+## Exercise 3. Sour cream
+
+**a)** Analyzing the data in a three-way experiment without interactions:
+
+```{r}
+# Load the data
+cream_data <- read.table("cream.txt", header = TRUE)
+
+# Fit the model without interactions
+model <- lm(acidity ~ starter + batch + position, data = cream_data)
+
+# Summary of the model
+summary(model)
+```
+
+From the summary output, we can examine the coefficients and corresponding p-values for the effect of each factor. The p-value associated with the coefficient for starter 1 compared to starter 2 indicates whether there is a significant difference between the effects of these two starters on acidity. If the p-value is less than the chosen significance level (e.g., 0.05), we consider the difference to be statistically significant.
+
+**b)** Removing insignificant block variables and performing ANOVA:
+
+```{r}
+# Fit the model with significant factors only
+model <- lm(acidity ~ starter, data = cream_data)
+
+# Perform ANOVA for the fixed effects model
+anova_result <- anova(model)
+
+# Print ANOVA table
+print(anova_result)
+```
+
+**c)** Applying the Friedman test:
+
+```{r}
+# Convert "acidity" column to numeric
+cream_data$acidity <- as.numeric(as.character(cream_data$acidity))
+
+# Conduct the Friedman test
+friedman_test_result <- friedman.test(cream_data$acidity, cream_data$starter, cream_data$batch)
+
+# Print the Friedman test result
+print(friedman_test_result)
+```
+
+d) Performing a mixed effects analysis:
+
+```{r}
+# Load the lme4 package
+library(lme4)
+
+# Fit the mixed effects model
+mixed_model <- lmer(acidity ~ (1|batch) + (1|position), data = cream_data)
+
+# Summary of the mixed effects model
+summary(mixed_model)
+```
+In the mixed effects model, we model the block variables (batch and position) as random effects. We compare the results from the mixed effects model to those from the fixed effects model to assess the impact of modeling block variables as random effects. This comparison helps evaluate the variability between batches and positions and provides insight into whether the fixed effects model adequately captures the underlying structure of the data.
