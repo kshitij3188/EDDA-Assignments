@@ -1,3 +1,7 @@
 ### EDDA Assignment Solutions
 
-This repository contains the solutions for Assignment 1, consisting of three exercises covering statistical analysis using R
+#### Pre-requisites
+```bash
+tinytex::install_tinytex()
+install.packages("lme4", type = "source")
+```
