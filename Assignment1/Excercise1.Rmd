@@ -35,12 +35,27 @@ In short, our inspection of these basic plots suggest that this sample is normal
 
 Because we are assuming by definition that our sample is normally distributed, we can apply the 68-95-99.7% rule. Because our sample has a mean of 51.85 and a standard deviation of 9.9, we can then see that the desired 97% confidence interval for the mean should lie inside the 6 sigma interval, which has a length of 59.9. With this rough estimation, our 97% confidence value for our mean is 51.85 +- 29.7, which is akin to the [22.15,81.55] interval.
 
+To get the 97% CI, we need to evaluate the margin of error with the formula
+
+margin = T(0.97)*(std(x)/sqrt(N))
+
+where T is the t distribution with N-1 degrees of freedom, N our sample size (200)...
 
 
 
 ```{r}
-
+n <- length(data)
+margin <- qt(0.97, df=n-1)*sd(data)/sqrt(n)
+min_mean = mean(data) - margin
+max_mean = mean(data) + margin
+length = max_mean - min_mean
 ```
+
+Thus, the 97% CI for the mean is [50.52571,53.1749], with a length of 2.648579
+
+------------
+
+
 
 
 ### Figures
