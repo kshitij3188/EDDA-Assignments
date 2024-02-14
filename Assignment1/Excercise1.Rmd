@@ -1,25 +1,47 @@
 ---
-title: "Assignment template"
-author: "James Bond, group 007"
-date: "1 February 2033"
+title: "Assignment 1"
+author: "James Bond, group 015"
+date: "20 February 2024"
 output: pdf_document
 fontsize: 11pt
 highlight: tango
 ---
 
-## Short introduction to R Markdown
+## Exercise 1
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. R Markdown files permit you to interweave R code with ordinary text to produce well-formatted data analysis reports that are easy to modify. The R Markdown file itself shows the readers exactly how you got the results in your report.
-For more details on using R Markdown see [\color{blue}{\underline{http://rmarkdown.rstudio.com}}](http://rmarkdown.rstudio.com).
-
-When you click the **Knit** button, a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. 
-For inline R code, surround code with back ticks and r. R replaces inline code with its results. For example, two plus one is `r 2+1`;
-for the build-in R dataset `cars`, there were `r nrow(cars)` 
-cars studied. You can embed an R code chunk like this:
+**a)**
 
 ```{r}
-summary(cars)
+# Load the dataset
+ice_cream_dataset <- read.csv("Ice_cream.csv")
+data = ice_cream_dataset$video
+
+# Do basic plots
+
+hist(data)
+qqnorm(data)
+boxplot(data)
 ```
+
+The histogram of the videogame scores looks normally distributed because it is roughly symetrical around 50, with values getting smaller towards its extremes. Despite this, the histogram bar for values between 60 and 65 is higher than what the corresponding analytical normal distribution should have.
+
+Secondly, the Q-Q Plot also shows that our sample is densely populated in the center and its shape is very close to a line, which is also consistent with normality.
+
+Finally, the boxplot is also consistent with normality, despite its median being not symetrical with its surrounding quantiles. As shown with the histogram, this can be explained with the additional values which are more frequently present in that particular region.
+
+In short, our inspection of these basic plots suggest that this sample is normally distributed.
+
+-----
+
+Because we are assuming by definition that our sample is normally distributed, we can apply the 68-95-99.7% rule. Because our sample has a mean of 51.85 and a standard deviation of 9.9, we can then see that the desired 97% confidence interval for the mean should lie inside the 6 sigma interval, which has a length of 59.9. With this rough estimation, our 97% confidence value for our mean is 51.85 +- 29.7, which is akin to the [22.15,81.55] interval.
+
+
+
+
+```{r}
+
+```
+
 
 ### Figures
 
