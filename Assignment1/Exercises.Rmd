@@ -1,7 +1,7 @@
 ---
 title: "Assignment 1"
-author: "Kshitij Kavimandan, Pablo Alves, Pooja Mangal group 015"
-date: "25 February 2024"
+author: "Kshitij Kavimandan, Pablo Alves, Pooja Mangal (Group 15)"
+date: "20 February 2024"
 output: pdf_document
 fontsize: 11pt
 highlight: tango
@@ -35,7 +35,9 @@ sample_mean <- mean(data$video)
 sample_sd <- sd(data$video)
 
 # Calculate the margin of error
-margin_of_error <- qt(0.985, df = length(data$video) - 1) * (sample_sd / sqrt(length(data$video)))
+margin_of_error <- qt(0.985, df = 
+                        length(data$video) - 1) * (sample_sd / 
+                                                     sqrt(length(data$video)))
 
 # Construct the CI
 lower_bound <- sample_mean - margin_of_error
@@ -54,7 +56,8 @@ required_sample_size <- (qt(0.985, df = 199) * sample_sd / 3) ^ 2
 ```{r}
 # Bootstrap function
 bootstrap_mean <- function(data, sample_size) {
-  bootstrap_samples <- replicate(10000, mean(sample(data, sample_size, replace = TRUE)))
+  bootstrap_samples <- replicate(10000, 
+                                 mean(sample(data, sample_size, replace = TRUE)))
   ci_lower <- quantile(bootstrap_samples, 0.015)
   ci_upper <- quantile(bootstrap_samples, 0.985)
   return(c(ci_lower, ci_upper))
@@ -81,13 +84,15 @@ Explanation of CI: The CI in the output represents the 95% confidence interval f
 
 ```{r}
 # Perform sign test
-sign_test <- binom.test(sum(data$video > 50), length(data$video), p = 0.5, alternative = "greater")
+sign_test <- binom.test(sum(data$video > 50), 
+                        length(data$video), p = 0.5, alternative = "greater")
 
 # Perform Wilcoxon signed-rank test
 wilcox_test <- wilcox.test(data$video, mu = 50, alternative = "greater")
 
 # Test for fraction of scores less than 42
-binom_test <- binom.test(sum(data$video < 42), length(data$video), p = 0.25, alternative = "less")
+binom_test <- binom.test(sum(data$video < 42), 
+                         length(data$video), p = 0.25, alternative = "less")
 ```
 
 **d)** Bootstrap test with test statistic T:
@@ -95,7 +100,8 @@ binom_test <- binom.test(sum(data$video < 42), length(data$video), p = 0.25, alt
 ```{r}
 # Bootstrap test function
 bootstrap_test <- function(data, num_samples) {
-  bootstrap_samples <- replicate(num_samples, min(sample(data, length(data), replace = TRUE)))
+  bootstrap_samples <- replicate(num_samples, 
+                                 min(sample(data, length(data), replace = TRUE)))
   p_value <- mean(bootstrap_samples < min(data) | bootstrap_samples > 100)
   return(p_value)
 }
@@ -118,7 +124,8 @@ female_scores <- data$video[data$female == 1]
 t_test_gender <- t.test(male_scores, female_scores, alternative = "greater")
 
 # Perform Mann-Whitney test
-mannwhitney_test <- wilcox.test(male_scores, female_scores, alternative = "greater")
+mannwhitney_test <- wilcox.test(male_scores, female_scores, 
+                                alternative = "greater")
 
 # Perform Kolmogorov-Smirnov test
 ks_test_gender <- ks.test(male_scores, female_scores)
@@ -146,7 +153,9 @@ combinations <- expand.grid(rate = c(1, 2, 3, 4), method = c("A", "B"))
 
 # Randomly assign 80 fishes to the combinations
 set.seed(123)  # Set seed for reproducibility
-hemoglobin_data$fish <- sample(rep(1:80, length.out = nrow(hemoglobin_data)), replace = FALSE)
+hemoglobin_data$fish <- sample(rep(1:80, 
+                                   length.out = nrow(hemoglobin_data)),
+                               replace = FALSE)
 
 # Merge the combinations with the hemoglobin data
 final_data <- merge(combinations, hemoglobin_data, by = "rate", all = TRUE)
@@ -166,16 +175,20 @@ print(summary(anova_result))
 
 ```{r}
 # Calculate means for rate and method
-mean_hemoglobin <- aggregate(hemoglobin ~ rate + method, data = hemoglobin_data, FUN = mean)
+mean_hemoglobin <- aggregate(hemoglobin ~ rate + method, 
+                             data = hemoglobin_data, FUN = mean)
 
 # Find combination yielding highest hemoglobin
 max_hemoglobin <- mean_hemoglobin[which.max(mean_hemoglobin$hemoglobin), ]
 
 # Estimate mean hemoglobin value for rate 3 by using method A
-mean_hemoglobin_rate3_methodA <- mean_hemoglobin$hemoglobin[which(mean_hemoglobin$rate == 3 & mean_hemoglobin$method == "A")]
+mean_hemoglobin_rate3_methodA <- 
+  mean_hemoglobin$hemoglobin[which(mean_hemoglobin$rate == 3 & 
+                                     mean_hemoglobin$method == "A")]
 
 # Estimate mean hemoglobin value for each rate
-mean_hemoglobin_rate <- aggregate(hemoglobin ~ rate, data = hemoglobin_data, FUN = mean)
+mean_hemoglobin_rate <- aggregate(hemoglobin ~ rate, 
+                                  data = hemoglobin_data, FUN = mean)
 ```
 
 **d)** One-way ANOVA:
@@ -236,7 +249,8 @@ print(anova_result)
 cream_data$acidity <- as.numeric(as.character(cream_data$acidity))
 
 # Conduct the Friedman test
-friedman_test_result <- friedman.test(cream_data$acidity, cream_data$starter, cream_data$batch)
+friedman_test_result <- friedman.test(cream_data$acidity, 
+                                      cream_data$starter, cream_data$batch)
 
 # Print the Friedman test result
 print(friedman_test_result)
