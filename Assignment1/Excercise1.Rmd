@@ -15,6 +15,7 @@ highlight: tango
 # Load the dataset
 ice_cream_dataset <- read.csv("Ice_cream.csv")
 data = ice_cream_dataset$video
+library("drcarlate")
 ```
 
 
@@ -48,10 +49,59 @@ n <- length(data)
 margin <- qt(0.97, df=n-1)*sd(data)/sqrt(n)
 min_mean = mean(data) - margin
 max_mean = mean(data) + margin
-length = max_mean - min_mean
+length = (max_mean - min_mean)/2; length
+paste("97 CI: ", mean(data), " +-", length)
 ```
 
 Thus, the 97% CI for the mean is [50.52571,53.1749], with a length of 2.648579
+
+
+In order to compute the bounded 97% CI for mu, we need to use the following formula:
+
+```{r}
+
+m_calculator<-function(p, data) sqrt(sd(data)/length(data)*(4*norminv(p+(1-p)/2)))
+margin = m_calculator(p=0.97,data=data)
+min_mean = mean(data) - margin
+max_mean = mean(data) + margin
+length = max_mean - min_mean; length
+paste("97 CI: ", mean(data)," +-", length)
+
+```
+
+In order to compute the neccesary number of samples needed for a particular maximun length of the CI we 
+can use the following formula
+
+```{r}
+
+n_calculator <- function(p,length,data) sd(data)*(2*norminv(p+(1-p)/2)/length)^2
+samples_needed = n_calculator(p=0.97,length=3,data=data)
+paste("For a margin of: ", 3 ," we need", samples_needed)
+
+```
+
+
+To determine the 97% bootstrap CI we can apply the following code
+
+```{r}
+p = 0.97
+B = 100
+
+Tstar = numeric(B)
+for(i in 1:B){Tstar[i]=mean(sample(data,replace=TRUE))}
+
+Tstar985 = quantile(Tstar,0.985)
+Tstar15 = quantile(Tstar, 0.015)
+
+c(2*mean(Tstar) - Tstar985,2*mean(Tstar)-Tstar15)
+
+d = ((2*mean(Tstar)-Tstar15) - (2*mean(Tstar) - Tstar985))
+paste("Length:",d)
+paste("Margin on each side:",d/2)
+
+```
+
+Our Bootstrap margin is bigger than our previous margins, which is consistent with the fact that the Bootstrap method does not assume normality, and thus is expected to have a bigger uncertainty on its estimation.
 
 -----
 
