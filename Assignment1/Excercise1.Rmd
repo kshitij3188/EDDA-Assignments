@@ -1,15 +1,15 @@
 ---
 title: "Assignment 1"
-author: "James Bond, group 015"
+author: "Kshitij Kavimandan, Pablo Alves, Pooja Mangal (Group 15)"
 date: "20 February 2024"
 output: pdf_document
 fontsize: 11pt
 highlight: tango
 ---
 
-## Exercise 1
+## Exercise 1. Ice cream
 
-**a)**
+**a)** Relevant plots and normality assessment:
 
 ```{r}
 # Load the dataset
@@ -55,9 +55,13 @@ Thus, the 97% CI for the mean is [50.52571,53.1749], with a length of 2.648579
 
 -----
 
+## Exercise 2. Hemoglobin in trout
+**a)** R-code for randomization process:
 
 
 
+## Exercise 3. Sour cream
+**a)** Analyzing the data in a three-way experiment without interactions:
 
 
 
