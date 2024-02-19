@@ -105,6 +105,119 @@ Our Bootstrap margin is bigger than our previous margins, which is consistent wi
 
 -----
 
+**b)**
+
+The t-test compares the mean of the sample to the hypothesized mean and calculates a t-statistic and a p-value.
+
+```{r}
+mu = 50
+x = rnorm(length(data), mu, 1)
+par(mfrow=c(1,2))
+hist(x)
+boxplot(x)
+t_test_result <- t.test(x, alternative="g", mu = mu)
+print(t_test_result)
+t_test_result_mu_51 <- t.test(x, alternative="g", mu = 51)
+t_test_result_mu_51
+```
+
+- In the first test, with mu_0 = 50, the p-value is more than the significance level of 0.05 which suggests that there isn't enough evidence to reject the null hypothesis, indicating that the mean score on the video game is not significantly different from 50. 
+
+- Similarly, when testing against mu_0 = 51, the high p-value of 1 implies strong evidence in favor of the null hypothesis, meaning that the mean score is not significantly greater than 51.
+
+- In the output, the 95% confidence interval for the first test is (49.9, infinity). This means that we are 95% confident that the true population mean lies in the above interval. The upper bound of infinity indicates that the upper limit is unbounded.
+
+- The confidence interval for the second test is the same, as it is based on the sample mean and standard deviation. It doesn't change with the hypothesized mean mu_0.
+
+**c)**
+
+```{r}
+# Sign test
+sign_test <- binom.test(sum(data > 50), length(data), p = 0.5, alternative = "g")
+print(sign_test)
+
+# Test based on ranks (Wilcoxon signed-rank test)
+wilcox_test <- wilcox.test(data, mu = 50, alternative = "g")
+print(wilcox_test)
+
+# Test for fraction of scores less than 42
+binom_test <- binom.test(sum(data < 42), length(data), p = 0.25, alternative = "l")
+print(binom_test)
+```
+
+
+- For the median score, the sign test results in a p-value of 0.144, suggesting no significant difference between the median score and mu_0 = 50. The 95% confidence interval for the success probability of the sign test ranges from 0.479 to 1.
+
+- Comments on comparison of the above results with the previous question (b)):
+*The t-test evaluates whether the mean score is significantly greater than 50, while the sign test assesses if the median score is greater than 50. Both tests yield p-values greater than 0.05, indicating that there's insufficient evidence to reject the null hypotheses. The confidence interval from the t-test provides a range of plausible values for the population mean, whereas the sign test directly assesses the proportion of observations above 50.*
+
+- The Wilcoxon signed-rank test results in a p-value of 0.005, indicating a significant difference between the median score and mu_0 = 50. The alternative hypothesis suggests that the true location is greater than 50.
+
+- Lastly, the binomial test to check the fraction of scores less than 42 yields a p-value of 0.0007, suggesting that the probability of success (scores less than 42) is less than 0.25. 
+
+**d)**
+
+```{r}
+n = length(data); t=min(data); t
+B = 100; tstar = numeric(B)
+for (i in 1:B) {xstar=rexp(n,1)
+ tstar[i]=min(xstar)}
+pl = sum(tstar<t)/B; pr=sum(tstar>t)/B
+p=2*min(pl,pr); p
+
+
+# Define the test statistic function
+test_statistic <- function(data) {
+  return(min(data))
+}
+
+# Number of bootstrap samples
+B <- 1000
+
+# Bootstrap test
+bootstrap_test <- function(mu) {
+  tstar <- numeric(B)
+  for (i in 1:B) {
+    bootstrap_sample <- rnorm(B, mean = mu, sd = 10)  # Generate bootstrap sample
+    tstar[i] <- test_statistic(bootstrap_sample)       # Compute minimum
+  }
+  
+  # Compute observed minimum
+  obs_min <- test_statistic(data[1:100])
+  
+  # Compute p-value
+  p_value <- mean(tstar >= obs_min)
+  
+  # Determine if null hypothesis is rejected
+  count <- 0
+  if (p_value > 0.05) {
+    reject_null <- TRUE
+  } else {
+    reject_null <- FALSE
+    count <- count + 1
+  }
+  
+  return(list(mu = mu, p_value = p_value, reject_null = reject_null))
+}
+
+# Perform bootstrap test for different values of mu in the range [0, 100]
+results <- lapply(seq(0, 100, by = 1), bootstrap_test)
+
+# Display results
+for (result in results) {
+  cat("mu:", result$mu, "p-value:", result$p_value, "Reject H0:", result$reject_null, "\n")
+}
+```
+
+Since p-value=0.007, H0 is rejected.
+
+```{r}
+hist(tstar,prob=T, main="Histogram of tstar")
+lines(rep(t,2),c(0,p), col="red",lwd=2)
+axis(1,t,expression(paste("t")))
+```
+
+
 ## Exercise 2. Hemoglobin in trout
 **a)** R-code for randomization process:
 
