@@ -45,6 +45,7 @@ where T is the t distribution with N-1 degrees of freedom, N our sample size (20
 
 
 ```{r}
+options(digits = 3)
 n <- length(data)
 margin <- qt(0.97, df=n-1)*sd(data)/sqrt(n)
 min_mean = mean(data) - margin
@@ -59,7 +60,7 @@ Thus, the 97% CI for the mean is [50.52571,53.1749], with a length of 2.648579
 In order to compute the bounded 97% CI for mu, we need to use the following formula:
 
 ```{r}
-
+options(digits = 3)
 m_calculator<-function(p, data) sqrt(sd(data)/length(data)*(4*norminv(p+(1-p)/2)))
 margin = m_calculator(p=0.97,data=data)
 min_mean = mean(data) - margin
@@ -73,7 +74,7 @@ In order to compute the neccesary number of samples needed for a particular maxi
 can use the following formula
 
 ```{r}
-
+options(digits = 3)
 n_calculator <- function(p,length,data) sd(data)*(2*norminv(p+(1-p)/2)/length)^2
 samples_needed = n_calculator(p=0.97,length=3,data=data)
 paste("For a margin of: ", 3 ," we need", samples_needed)
@@ -84,6 +85,7 @@ paste("For a margin of: ", 3 ," we need", samples_needed)
 To determine the 97% bootstrap CI we can apply the following code
 
 ```{r}
+options(digits = 3)
 p = 0.97
 B = 100
 
@@ -105,11 +107,12 @@ Our Bootstrap margin is bigger than our previous margins, which is consistent wi
 
 -----
 
-**b)**
+**b)** T-test to verify mean score:
 
 The t-test compares the mean of the sample to the hypothesized mean and calculates a t-statistic and a p-value.
 
 ```{r}
+options(digits = 3)
 mu = 50
 x = rnorm(length(data), mu, 1)
 par(mfrow=c(1,2))
@@ -129,9 +132,10 @@ t_test_result_mu_51
 
 - The confidence interval for the second test is the same, as it is based on the sample mean and standard deviation. It doesn't change with the hypothesized mean mu_0.
 
-**c)**
+**c)** Sign test and test based on ranks:
 
 ```{r}
+options(digits = 3)
 # Sign test
 sign_test <- binom.test(sum(data > 50), length(data), p = 0.5, alternative = "g")
 print(sign_test)
@@ -155,9 +159,11 @@ print(binom_test)
 
 - Lastly, the binomial test to check the fraction of scores less than 42 yields a p-value of 0.0007, suggesting that the probability of success (scores less than 42) is less than 0.25. 
 
-**d)**
+**d)** Bootstrap test with test statistic T:
 
 ```{r}
+options(digits = 3)
+# Bootstrap test (slides)
 n = length(data); t=min(data); t
 B = 100; tstar = numeric(B)
 for (i in 1:B) {xstar=rexp(n,1)
@@ -166,6 +172,8 @@ pl = sum(tstar<t)/B; pr=sum(tstar>t)/B
 p=2*min(pl,pr); p
 
 
+
+# Bootstrap test (google)
 # Define the test statistic function
 test_statistic <- function(data) {
   return(min(data))
@@ -207,6 +215,29 @@ results <- lapply(seq(0, 100, by = 1), bootstrap_test)
 for (result in results) {
   cat("mu:", result$mu, "p-value:", result$p_value, "Reject H0:", result$reject_null, "\n")
 }
+
+
+
+# Apply Kolmogorov-Smirnov test
+# Perform Kolmogorov-Smirnov test for different values of mu in the range [0, 100]
+mu_values_not_rejected <- c()
+
+for (mu in seq(0, 100, by = 1)) {
+  # Generate the first 100 samples from N(mu, 100)
+  sample_data <- rnorm(100, mean = mu, sd = 10)
+  
+  # Compute the Kolmogorov-Smirnov statistic and p-value
+  ks_test_result <- ks.test(sample_data, "pnorm", mean = mu, sd = 10)
+  
+  # Check if null hypothesis is rejected
+  if (ks_test_result$p.value > 0.05) {
+    mu_values_not_rejected <- c(mu_values_not_rejected, mu)
+  }
+}
+
+# Display mu values for which null hypothesis is not rejected
+cat("Mu values for which null hypothesis is not rejected:", mu_values_not_rejected, "\n")
+
 ```
 
 Since p-value=0.007, H0 is rejected.
@@ -218,118 +249,198 @@ axis(1,t,expression(paste("t")))
 ```
 
 
+**e)** Tests for male and female students:
+
+```{r}
+options(digits = 3)
+data <- read.csv("Ice_cream.csv")
+
+# Separate scores for male and female students
+male_scores <- data$video[data$female == 0]
+female_scores <- data$video[data$female == 1]
+# Perform two-sample t-test
+t_test_gender <- t.test(male_scores, female_scores, alternative = "g"); t_test_gender
+# Perform Mann-Whitney test
+mannwhitney_test <- wilcox.test(male_scores, female_scores,
+alternative = "g"); mannwhitney_test
+# Perform Kolmogorov-Smirnov test
+ks_test_gender <- ks.test(male_scores, female_scores); ks_test_gender
+
+```
+
+**f)** Correlation and comparison between video game and puzzle scores:
+
+```{r}
+options(digits = 3)
+# Investigate correlation
+correlation <- cor(data$video, data$puzzle); correlation
+# Test if puzzle scores are higher than video game scores
+wilcox_test_puzzle <- wilcox.test(data$puzzle, data$video, alternative = "g"); wilcox_test_puzzle
+
+```
+
 ## Exercise 2. Hemoglobin in trout
 **a)** R-code for randomization process:
+a) R-code for randomization process:
+```{r}
+options(digits = 3)
+# Load the data
+hemoglobin_data <- read.table("hemoglobin.txt", header = TRUE)
+# Create a data frame to store the combinations of rate and method
+combinations <- expand.grid(rate = c(1, 2, 3, 4), method = c("A", "B"))
+# Randomly assign 80 fishes to the combinations
+set.seed(123) # Set seed for reproducibility
+hemoglobin_data$fish <- sample(rep(1:80,
+length.out = nrow(hemoglobin_data)),
+replace = FALSE)
+# Merge the combinations with the hemoglobin data
+final_data <- merge(combinations, hemoglobin_data, by = "rate", all = TRUE)
+``` 
+
+**b)** Two-way ANOVA:
+
+```{r}
+options(digits = 3)
+# Perform two-way ANOVA
+anova_result <- aov(hemoglobin ~ rate * method, data = hemoglobin_data)
+# Print ANOVA table
+print(summary(anova_result))
+```
+
+**c)** Influence of factors and combination yielding highest hemoglobin:
+```{r}
+options(digits = 3)
+# Calculate means for rate and method
+mean_hemoglobin <- aggregate(hemoglobin ~ rate + method,
+data = hemoglobin_data, FUN = mean)
+# Find combination yielding highest hemoglobin
+max_hemoglobin <- mean_hemoglobin[which.max(mean_hemoglobin$hemoglobin), ]
+# Estimate mean hemoglobin value for rate 3 by using method A
+mean_hemoglobin_rate3_methodA <-
+mean_hemoglobin$hemoglobin[which(mean_hemoglobin$rate == 3 &
+mean_hemoglobin$method == "A")]
+# Estimate mean hemoglobin value for each rate
+mean_hemoglobin_rate <- aggregate(hemoglobin ~ rate,
+data = hemoglobin_data, FUN = mean)
+```
+
+**d)** One-way ANOVA:
+
+```{r}
+options(digits = 3)
+# Perform one-way ANOVA ignoring the variable method
+anova_result_rate <- aov(hemoglobin ~ rate, data = hemoglobin_data)
+# Print ANOVA table
+print(summary(anova_result_rate))
+```
+
+**e)** Kruskal-Wallis test:
+```{r}
+options(digits = 3)
+# Perform Kruskal-Wallis test
+kruskal_test_result <- kruskal.test(hemoglobin ~ rate, data = hemoglobin_data)
+# Print Kruskal-Wallis test result
+print(kruskal_test_result)
+```
+
+# Exercise 3. Sour cream
 
 
+Read the data 
+Columns: acidity batch position starter
 
-## Exercise 3. Sour cream
+```{r}
+data <- read.table(file = "cream.txt", header = TRUE, sep="", dec=".")
+```
+
 **a)** Analyzing the data in a three-way experiment without interactions:
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-### Figures
-
-You can also embed plots, for example:
-
-```{r,echo=FALSE,fig.height=3.5}
-plot(cars)
+I decide to do 3-way additive ANOVA test, for it does not assume interaction (notice the + and not *)
+```{r}
+model <- aov(acidity ~ starter + batch + position, data=data)
+summary(model)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Use knitr options to style the output of a chunk. Place options in brackets above the chunk.
-Other options with the defaults are: the `eval=FALSE` option just displays the R code (and does not run it); `warning=TRUE` whether to display warnings; `tidy=TRUE` wraps long code so it does not run off the page.
+## Our test is intended to test the isolated effect of different factors
+## Because for our starter factor we have a Pr(>F) of 0.431, 
+## which is big >> 0.05, we cannot conclude that there is a significant difference
+## between the effects of starter 1 and starte 2 on acidity
 
-You can control the size and placement of figures. For example, 
-you can put two figures (or more) next to each other. 
-Use `par(mfrow=c(n,m))` to create `n` by `m` plots in one picture in R.
-You can adjust the proportions of figures by using the `fig.width` 
-and `fig.height` chunk options. These are specified in inches, 
-and will be automatically scaled down to fit within the handout margin.
-Chunk option `fig.align`  takes values `left`, `right`, or `center` 
-(to align figures in the output document).
+## Instead, we could do a two-sample t-test to see
+## if the average acidity changes significantly with starter 1 or 2,
+## which shows a p-value of 0.8482, and thus we can't reject H0
+## so in summary we can't say that there is a significant 
+## difference between the effects of starter 1 and starter 2 on acidity?
 
-```{r,fig.margin = TRUE,fig.width=6,fig.height=3,fig.align="center"}
-par(mfrow=c(1,2)); x1=rnorm(50); hist(x1); qqnorm(x1)
+```{r}
+sample1 = data[data$starte == 1, ]
+sample2 = data[data$starte == 2, ]
+t.test(sample1$acidity, sample2$acidity, var.equal=TRUE) 
 ```
 
-You can arrange for figures to span across the entire page by using 
-the `fig.fullwidth` chunk option. 
+## EXTRA If we really wanted to go further we could also do an interaction plot,
+## then we can see that for lines of starter 1 and 2
+## Like this: interaction.plot(data$acidity,data$starter,data$batch)
 
-```{r,fig.fullwidth=TRUE,fig.height=3}
-plot(iris$Sepal.Length,iris$Petal.Length,xlab="Sepal.Length",ylab="Petal.Length")
+**b)** Removing insignificant block variables and performing ANOVA:
+
+
+## To find insignificant block variables and thus remove them
+## we do ANOVA again, but this time ithout starter
+
+```{r}
+model2 <- aov(acidity ~ batch + position, data=data)
+summary(model2)
 ```
 
-More about chunk options can be found at [\color{blue}{\underline{https://yihui.name/knitr/options/}}](https://yihui.name/knitr/options/).
+## Here both variables have still a big p, so while technically
+## all variables could be discarded, which would be absurd,
+## we could just remove position, for its p-value 0.788
+## is greater than the 0.222 value of batch, despite both
+## being big.
+
+## Thus, to find which starters lead to significantly different acidity
+## we could to an interaction plot like this
+interaction.plot(data$acidity,data$starter,data$batch)
 
 
-### Equations
 
-To produce mathematical symbols, you can also include \LaTeX\ expessions/equations in your report:
-inline $\frac{d}{dx}\left(\int_{0}^{x} f(u)\,du\right)=f(x)$ and 
-in the display mode:
-\[
-\frac{d}{dx}\left( \int_{0}^{x} f(u)\,du\right)=f(x).
-\]
-To be able to use this functionality, \LaTeX\ has to be installed.
- 
-### Footnotes
+**c)** Applying the Friedman test:
 
-Here is the use of a footnote^[This is a footnote.]. 
+## Because we have severall batches for each starter position and not one
+## We can't use the Friedman test
 
+## However, if we modify our data by averaging the acidity of every batch
+## to have one element per starter sample, we could do it.
+## Alternatively, we could also do the Friedman test five times, one for every batch
 
-### Images
-Want an image? This will do it. 
-To depict an image (say, `my_image.png` which should be in your current working directory), use this command 
+## Using https://search.r-project.org/R/refmans/stats/html/friedman.test.html
+## The syntax should be something like this (we also need to filter the extra samples)
 
-![caption for my image](my_image.png)
-
-### Tables  
-
-Want a table? This will create one (note that the separators 
-*do not* have to be aligned).
-
-Table Header  | Second Header
-------------- | -------------
-Table Cell    | Cell 2
-Cell 3        | Cell 4 
-
-
-You can also make table by using knit's `kable` function:
-
-```{r echo=FALSE, results='asis'}
-library(knitr)
-kable(mtcars[1:5,],caption="A knit kable.")
+```{r}
+# friedman_test(data, acidity ~ starter)
+# friedman.test(acidity ~ starter, data = data)
 ```
 
-### Block quote
-> This will create a block quote, 
-> if you want one.
 
-### Verbatim
+
+**d)**  Performing a mixed effects analysis:
+
+## Install and load library
+```{r}
+library("devtools"); 
+install_github("lme4/lme4",dependencies=TRUE)
+library("lmer4")
 ```
-This text is displayed verbatim/preformatted.
+
+## Getting error Error: Failed to install 'lme4' from GitHub:
+## Could not find tools necessary to compile a package
+## Call pkgbuild::check_build_tools(debug = TRUE) to diagnose the problem.
+
+## Syntax will be something like this
+## https://www.rdocumentation.org/packages/lme4/versions/1.1-35.1/topics/lmer
+
+```{r}
+model <- lmer(acidity ~ starter + (1|position), data = data)
 ```
-
-### Links
-Links: http://example.com, [in-text link to Google](http://google.com).
-
-This is a \hyperlink{target1}{{\color{blue}{\underline{hyperlink}}}}.
-
-\hypertarget{target1}{{\color{blue}{\underline{This}}}} is where the hyperlink jumps to.
-
-### Itimization, italicized and embolded text
-- Single asterisks italicize text *like this*. 
-- Double asterisks embolden text **like this**.
-
-One more way to italicize and embold: _italic_ and __bold__.
