@@ -7,7 +7,7 @@ fontsize: 11pt
 highlight: tango
 ---
 
-Exercise 1. Ice cream
+## Exercise 1. Ice cream
 
 **a)** Relevant plots and normality assessment:
 
@@ -19,29 +19,17 @@ library("drcarlate")
 ```
 
 
-```{r,fig.margin = TRUE,fig.width=6,fig.height=4,fig.align="centerr"}
+```{r,fig.margin = TRUE,fig.width=6,fig.height=3,fig.align="center"}
 # Do basic plots
-par(mfrow=c(1,2)); hist(data); qqnorm(data); boxplot(data)
+par(mfrow=c(1,3)); hist(data); qqnorm(data); boxplot(data)
 ```
 
-The histogram of the videogame scores looks normally distributed because it is roughly symetrical around 50, with values getting smaller towards its extremes. Despite this, the histogram bar for values between 60 and 65 is higher than what the corresponding analytical normal distribution should have.
 
-Secondly, the Q-Q Plot also shows that our sample is densely populated in the center and its shape is very close to a line, which is also consistent with normality.
+The videogame scores histogram appears roughly normally distributed, with values decreasing towards the extremes. However, the bar for scores between 60 and 65 is higher than expected, reflecting real-world data variability. The Q-Q Plot indicates dense centering and line-like shape, supporting normality. The boxplot, while asymmetrical around the median, aligns with normality due to additional values in that region. Overall, these plots suggest a normal distribution in the sample.
 
-Finally, the boxplot is also consistent with normality, despite its median being not symetrical with its surrounding quantiles. As shown with the histogram, this can be explained with the additional values which are more frequently present in that particular region.
-
-In short, our inspection of these basic plots suggest that this sample is normally distributed.
-
------
-
-Because we are assuming by definition that our sample is normally distributed, we can apply the 68-95-99.7% rule. Because our sample has a mean of 51.85 and a standard deviation of 9.9, we can then see that the desired 97% confidence interval for the mean should lie inside the 6 sigma interval, which has a length of 59.9. With this rough estimation, our 97% confidence value for our mean is 51.85 +- 29.7, which is akin to the [22.15,81.55] interval.
-
-To get the 97% CI, we need to evaluate the margin of error with the formula
+Based on the assumption of normal distribution, we apply the 68-95-99.7% rule. With a mean of 51.85 and a standard deviation of 9.9, the 97% confidence interval for the mean should lie within the 6 sigma interval, which is 59.9 units in length. Therefore, the rough estimation for the 97% confidence interval is 51.85 +- 29.7, equivalent to the interval [22.15, 81.55]. To calculate the 97% confidence interval precisely, we use the margin of error formula, where x represents the sample, N is the sample size (here 200), and T is the t distribution with N-1 degrees of freedom.
 
 margin = T(0.97)*(std(x)/sqrt(N))
-
-where T is the t distribution with N-1 degrees of freedom, N our sample size (200)...
-
 
 
 ```{r}
@@ -50,7 +38,8 @@ n <- length(data)
 margin <- qt(0.97, df=n-1)*sd(data)/sqrt(n)
 min_mean = mean(data) - margin
 max_mean = mean(data) + margin
-length = (max_mean - min_mean)/2; length
+length = round((max_mean - min_mean)/2, digits = 3); length
+
 paste("97 CI: ", mean(data), " +-", length)
 ```
 
@@ -65,20 +54,20 @@ m_calculator<-function(p, data) sqrt(sd(data)/length(data)*(4*norminv(p+(1-p)/2)
 margin = m_calculator(p=0.97,data=data)
 min_mean = mean(data) - margin
 max_mean = mean(data) + margin
-length = max_mean - min_mean; length
-paste("97 CI: ", mean(data)," +-", length)
+length = round(max_mean - min_mean, digits = 3); length
 
+paste("97 CI: ", mean(data)," +-", length)
 ```
 
-In order to compute the neccesary number of samples needed for a particular maximun length of the CI we 
+In order to compute the necessary number of samples needed for a particular maximum length of the CI we 
 can use the following formula
 
 ```{r}
 options(digits = 3)
 n_calculator <- function(p,length,data) sd(data)*(2*norminv(p+(1-p)/2)/length)^2
-samples_needed = n_calculator(p=0.97,length=3,data=data)
-paste("For a margin of: ", 3 ," we need", samples_needed)
+samples_needed = round(n_calculator(p=0.97,length=3,data=data), digits = 3);
 
+paste("For a margin of: ", 3 ," we need", samples_needed)
 ```
 
 
@@ -97,7 +86,7 @@ Tstar15 = quantile(Tstar, 0.015)
 
 c(2*mean(Tstar) - Tstar985,2*mean(Tstar)-Tstar15)
 
-d = ((2*mean(Tstar)-Tstar15) - (2*mean(Tstar) - Tstar985))
+d = round(((2*mean(Tstar)-Tstar15) - (2*mean(Tstar) - Tstar985)), digits=3)
 paste("Length:",d)
 paste("Margin on each side:",d/2)
 
@@ -109,9 +98,7 @@ Our Bootstrap margin is bigger than our previous margins, which is consistent wi
 
 **b)** T-test to verify mean score:
 
-The t-test compares the mean of the sample to the hypothesized mean and calculates a t-statistic and a p-value.
-
-```{r}
+```{r,fig.margin = TRUE,fig.width=5.5,fig.height=3.5,fig.align="center"}
 options(digits = 3)
 mu = 50
 x = rnorm(length(data), mu, 1)
@@ -124,13 +111,7 @@ t_test_result_mu_51 <- t.test(x, alternative="g", mu = 51)
 t_test_result_mu_51
 ```
 
-- In the first test, with mu_0 = 50, the p-value is more than the significance level of 0.05 which suggests that there isn't enough evidence to reject the null hypothesis, indicating that the mean score on the video game is not significantly different from 50. 
-
-- Similarly, when testing against mu_0 = 51, the high p-value of 1 implies strong evidence in favor of the null hypothesis, meaning that the mean score is not significantly greater than 51.
-
-- In the output, the 95% confidence interval for the first test is (49.9, infinity). This means that we are 95% confident that the true population mean lies in the above interval. The upper bound of infinity indicates that the upper limit is unbounded.
-
-- The confidence interval for the second test is the same, as it is based on the sample mean and standard deviation. It doesn't change with the hypothesized mean mu_0.
+The t-tests compare sample means to hypothesized values, yielding t-statistics and p-values. For both tests (mu_0 = 50 and mu_0 = 51), p-values exceed 0.05, suggesting insufficient evidence to reject the null hypothesis. The 95% confidence interval for both tests is (49.9, infinity), indicating 95% confidence in the population mean falling within this range. The upper bound is unbounded, remaining consistent across tests regardless of the hypothesized mean mu_0.
 
 **c)** Sign test and test based on ranks:
 
@@ -150,75 +131,55 @@ print(binom_test)
 ```
 
 
-- For the median score, the sign test results in a p-value of 0.144, suggesting no significant difference between the median score and mu_0 = 50. The 95% confidence interval for the success probability of the sign test ranges from 0.479 to 1.
-
-- Comments on comparison of the above results with the previous question (b)):
-*The t-test evaluates whether the mean score is significantly greater than 50, while the sign test assesses if the median score is greater than 50. Both tests yield p-values greater than 0.05, indicating that there's insufficient evidence to reject the null hypotheses. The confidence interval from the t-test provides a range of plausible values for the population mean, whereas the sign test directly assesses the proportion of observations above 50.*
-
-- The Wilcoxon signed-rank test results in a p-value of 0.005, indicating a significant difference between the median score and mu_0 = 50. The alternative hypothesis suggests that the true location is greater than 50.
-
-- Lastly, the binomial test to check the fraction of scores less than 42 yields a p-value of 0.0007, suggesting that the probability of success (scores less than 42) is less than 0.25. 
+The sign test yielded a p-value of 0.144, indicating no significant difference between the median score and the reference value of 50. The 95% confidence interval for the success probability of the sign test ranged from 0.479 to 1.
+In comparison, the t-test and the sign test both produced p-values above 0.05, suggesting insufficient evidence to reject the null hypotheses. However, the Wilcoxon signed-rank test resulted in a p-value of 0.005, indicating a significant difference between the median score and the reference value of 50.
+Additionally, the binomial test revealed a p-value of 8e-04, indicating that the probability of scores less than 42 is less than 0.25.
 
 **d)** Bootstrap test with test statistic T:
 
 ```{r}
-options(digits = 3)
-# Bootstrap test
-# Function to compute the test statistic T
-compute_T <- function(x) {
-  return(min(x))
+B <- 1000
+# Vector to store the bootstrap test statistics
+t_star <- numeric(B)
+
+for (i in 1:B) {
+  # Generate bootstrap sample
+  data_star <- rexp(200, 1)
+  # Calculate the test statistic for the bootstrap sample
+  t_star[i] <- min(data_star[1:100])  # Min of the first 100 elements
 }
 
-# Bootstrap test
-# Bootstrap function to calculate the test statistic T
-bootstrap <- function(data) {
-  min_sample <- replicate(1000, min(sample(data, 200, replace = TRUE)))
-  return(min_sample)
-}
+# Calculate the test statistic for the observed data
+t <- min(data[1:100])
 
-# Function to perform hypothesis testing
-hypothesis_test <- function(mu) {
-  data_sample <- rnorm(100, mean = mu, sd = 10)  # Generate a sample from N(mu, 100)
-  test_statistic <- min(data_sample)  # Compute the test statistic T
-  
-  # Bootstrap test
-  bootstrap_samples <- bootstrap(data)
-  p_value <- mean(bootstrap_samples <= test_statistic)
-  
-  # Return whether to reject H0 and the p-value
-  return(list(reject_H0 = p_value < 0.05, p_value = p_value))
-}
+# Count how many times the test statistic is less and greater than t
+p_l <- sum(t_star < t) / B
+p_r <- sum(t_star > t) / B
 
-# Loop through mu values from 0 to 100
+# Calculate the two-sided p-value
+p_value <- 2 * min(p_l, p_r)
+
+# Specify the range of mu values to test
 mu_values <- seq(0, 100, by = 1)
-not_rejected_mu <- c()
+reject_H0 <- rep(FALSE, length(mu_values))
 
-for (mu in mu_values) {
-  result <- hypothesis_test(mu)
-  
-  # If H0 is not rejected, print the mu value
-  if (!result$reject_H0) {
-    not_rejected_mu <- c(not_rejected_mu, mu)
-  }
+for (i in 1:length(mu_values)) {
+  reject_H0[i] <- p_value < 0.05
 }
-
-print(not_rejected_mu)
 ```
 
-The test concluded that mu values between 47 and 100 are not rejected by the null hypothesis.
+Mu values for which H0 is not rejected: [0, 100]
+
+Unexpectedly, the Bootstrap test resulted in every value of mu being not rejected by the null hypothesis.
+The test may not have worked as expected in this scenario due to the nature of the data or incorrect assumptions about the distribution.
 
 
-```{r}
-# Apply Kolmogorov-Smirnov test
+```{r, warning=FALSE}
 # Perform Kolmogorov-Smirnov test for different values of mu in the range [0, 100]
 mu_values_not_rejected <- c()
 
 for (mu in seq(0, 100, by = 1)) {
-  # Generate the first 100 samples from N(mu, 100)
-  sample_data <- rnorm(100, mean = mu, sd = 10)
-  
-  # Compute the Kolmogorov-Smirnov statistic and p-value
-  ks_test_result <- ks.test(sample_data, "pnorm", mean = mu, sd = 10)
+  ks_test_result <- ks.test(data, "pnorm", mean = mu, sd = 10)
   
   # Check if null hypothesis is rejected
   if (ks_test_result$p.value > 0.05) {
@@ -231,8 +192,7 @@ cat("Mu values for which null hypothesis is not rejected:", mu_values_not_reject
 
 ```
 
-Surprisingly, the KS test resulted in every value of mu being not rejected by the null hypothesis.
-The KS test may not have worked as expected in this scenario due to the nature of the data or incorrect assumptions about the distribution.
+The test concluded that for mu values 52 and 53 we not rejected by the null hypothesis.
 
 
 **e)** Tests for male and female students:
@@ -248,7 +208,7 @@ female_scores <- data$video[data$female == 1]
 t_test_gender <- t.test(male_scores, female_scores, alternative = "g"); t_test_gender
 ```
 
-The t-test yields a p-value of 0.04, indicating that there is a significant difference in mean scores between male and female students. The confidence interval suggests that the mean score for male students is likely higher than for female students.
+The t-test yields a p-value of 0.04, indicating that there is a significant difference in mean scores between male and female students.
 
 ```{r}
 # Perform Mann-Whitney test
@@ -263,7 +223,7 @@ The Mann-Whitney test also indicates a significant difference in the distributio
 ks_test_gender <- ks.test(male_scores, female_scores); ks_test_gender
 ```
 
-The Kolmogorov-Smirnov test yields a p-value of 0.07, which is slightly higher than the significance threshold of 0.05. This suggests that there may be a difference in the distribution of scores between male and female students, but it's not as conclusive as the other tests.
+The Kolmogorov-Smirnov test yields a p-value of 0.07, which is slightly higher than the significance threshold of 0.05. This suggests that there may be a difference in the distribution of scores between male and female students, but this test is not as conclusive as the other tests.
 
 **f)** Correlation and comparison between video game and puzzle scores:
 
@@ -273,24 +233,25 @@ options(digits = 3)
 correlation <- cor(data$video, data$puzzle); correlation
 ```
 
-This suggests that there is some degree of association between scores on the video game and scores on the puzzle, although the correlation is not extremely strong.
+This suggests that there is some degree of correlation between scores on the video game and scores on the puzzle, although the correlation is not extremely strong.
 
 ```{r}
 # Test if puzzle scores are higher than video game scores
-wilcox_test_puzzle <- wilcox.test(data$puzzle, data$video, alternative = "g"); wilcox_test_puzzle
-
+wilcox_test_puzzle <- wilcox.test(data$puzzle, data$video, alternative = "g");
+wilcox_test_puzzle
 ```
 Despite the moderate positive correlation between the video and puzzle scores, the statistical test does not provide strong evidence to support the hypothesis that puzzle scores are consistently higher than video game scores.
 
-Exercise 2. Hemoglobin in trout
+# Exercise 2. Hemoglobin in trout
 **a)** R-code for randomization process:
-a) R-code for randomization process:
+
 ```{r}
 options(digits = 3)
 # Load the data
 hemoglobin_data <- read.table("hemoglobin.txt", header = TRUE)
 # Define the number of fishes and combinations of rate and method
 num_fishes <- 80
+set.seed(123)
 method_levels <- sample(rep(c("A","B"), 40))
 rate_levels <- sample(rep(1:4, 20))
 
@@ -306,14 +267,15 @@ rate=as.factor(hemoglobin_data$rate);
 method=as.factor(hemoglobin_data$method);
 # Print ANOVA table
 hemoglobin_aov=lm(hemoglobin_data$hemoglobin~method*rate); anova(hemoglobin_aov)
+
+
 ```
 
-The interaction term "method:rate" has a non-significant F-value (F = 1.05, p = 0.38). This suggests that the combined effect of the method and rate on hemoglobin levels is not significantly different from what would be expected based on the individual effects of method and rate alone.
+The effect of method on the rate ("method:rate") has a non-significant F-value (F = 1.05, p = 0.38). This suggests that the combined effect of the method and rate on hemoglobin levels is not significantly different from what would be expected based on the individual effects of method and rate alone.
 
-The rate has a highly significant impact on hemoglobin levels (F = 19.47, p < 0.001).
+The rate has a highly significant impact on hemoglobin levels (F = 19.47, p = 2.4e-09).
 
-**c)** Influence of factors and combination yielding highest hemoglobin:
-options(digits = 3)
+**c)** Influence of factors and combination yielding highest hemoglobin (rate=3):
 
 ```{r}
 options(digits = 3)
@@ -334,14 +296,14 @@ So the 2nd factor (rate) has a significant effect in the additive model. This is
 mean_hemoglobin <- aggregate(hemoglobin ~ rate + method,
 data = hemoglobin_data, FUN = mean)
 # Find combination yielding highest hemoglobin
-max_hemoglobin <- mean_hemoglobin[which.max(mean_hemoglobin$hemoglobin), ]
+max_hemoglobin <- mean_hemoglobin[which.max(mean_hemoglobin$hemoglobin), ]; max_hemoglobin
 ```
 
 ```{r}
 # Estimate mean hemoglobin value for rate 3 by using method A
 mean_hemoglobin_rate3_methodA <-
 mean_hemoglobin$hemoglobin[which(mean_hemoglobin$rate == 3 &
-mean_hemoglobin$method == "A")]
+mean_hemoglobin$method == "A")]; mean_hemoglobin_rate3_methodA
 ```
 
 ```{r}
@@ -350,7 +312,7 @@ mean_hemoglobin_rate <- aggregate(hemoglobin ~ rate,
 data = hemoglobin_data, FUN = mean); mean_hemoglobin_rate
 ```
 
-The hemoglobin rate was highest with rate 5 corresponding to the value of 2
+The hemoglobin rate was highest with rate 5 corresponding to the value of 2 (as given in the question)
 
 **d)** One-way ANOVA:
 
@@ -362,7 +324,7 @@ anova_result_rate <- anova(lm(hemoglobin ~ rate, data = hemoglobin_data))
 print(anova_result_rate)
 ```
 
- The null hypothesis that hemoglobin is the same for all rates is rejected, suggesting that the rate of treatment administration has a notable impact on hemoglobin levels.
+ The null hypothesis that hemoglobin is the same for all rates is rejected, suggesting that the rate of treatment administration has a significant impact on hemoglobin levels.
  
 ```{r}
 hemoglobin_by_rate <- tapply(hemoglobin_data$hemoglobin, hemoglobin_data$rate, mean)
@@ -381,10 +343,7 @@ kruskal_test_result <- kruskal.test(hemoglobin, rate)
 print(kruskal_test_result)
 ```
 
-
-The small p-value (2e-07) indicates strong evidence against the null hypothesis, suggesting that there are significant differences in hemoglobin levels among the different rates.
-The one-way ANOVA rejects the null hypothesis, indicating that the rate of treatment administration has a notable impact on hemoglobin levels.The Kruskal-Wallis test also rejects the null hypothesis, suggesting that there are significant differences in hemoglobin levels among the different rates of treatment administration.
-While both tests arrive at the same conclusion in this case, differences may arise when the assumptions of the one-way ANOVA are violated, such as in the presence of non-normal or skewed data. In such cases, the Kruskal-Wallis test, being non-parametric, might be more appropriate and may provide more robust results.
+The small p-value (2e-07) indicates significant differences in hemoglobin levels among the treatment rates, as observed in both the one-way ANOVA and Kruskal-Wallis tests. The ANOVA and Kruskal-Wallis tests both reject the null hypothesis, indicating that treatment administration rates significantly impact hemoglobin levels. While both tests yield similar conclusions in this case, differences may arise when ANOVA assumptions are violated, such as in non-normal or skewed data. In such cases, the Kruskal-Wallis test, being non-parametric, may be more appropriate and yield more robust results.
 
 # Exercise 3. Sour cream
 
@@ -397,96 +356,63 @@ data <- read.table(file = "cream.txt", header = TRUE, sep="", dec=".")
 
 **a)** Analyzing the data in a three-way experiment without interactions:
 
-
-I decide to do 3-way additive ANOVA test, for it does not assume interaction (notice the + and not *)
 ```{r}
-model <- aov(acidity ~ starter + batch + position, data=data)
-summary(model)
+res <- lm(acidity ~ factor(starter) + factor(batch) + factor(position), data=data)
+summary(res)
 ```
 
-Our test is intended to test the isolated effect of different factors
-Because for our starter factor we have a Pr(>F) of 0.431, 
-which is big >> 0.05, we cannot conclude that there is a significant difference
-between the effects of starter 1 and start 2 on acidity
-
-Instead, we could do a two-sample t-test to see
-if the average acidity changes significantly with starter 1 or 2,
-which shows a p-value of 0.8482, and thus we can't reject H0
-so in summary we can't say that there is a significant 
-difference between the effects of starter 1 and starter 2 on acidity?
+Starter 1 has intercept has p 1.55e-09 and starter 2 p of 0.7358 > 0.05
+So no significant difference between starter 1 and 2
 
 ```{r}
-sample1 = data[data$starte == 1, ]
-sample2 = data[data$starte == 2, ]
+sample1 = data[data$starter == 1, ]
+sample2 = data[data$starter == 2, ]
 t.test(sample1$acidity, sample2$acidity, var.equal=TRUE) 
 ```
 
-EXTRA If we really wanted to go further we could also do an interaction plot,
-then we can see that for lines of starter 1 and 2
-
-
-Like this:
-```{r}
-interaction.plot(data$acidity,data$starter,data$batch)
-```
 
 **b)** Removing insignificant block variables and performing ANOVA:
 
-
-To find insignificant block variables and thus remove them
-we do ANOVA again, but this time without starter
-
-```{r}
-model2 <- aov(acidity ~ batch + position, data=data)
-summary(model2)
-```
-
-Here both variables have still a big p, so while technically
-all variables could be discarded, which would be absurd,
-we could just remove position, for its p-value 0.788
-is greater than the 0.222 value of batch, despite both
-being big.
-
-Thus, to find which starters lead to significantly different acidity
-we could to an interaction plot like this
+Previous test showed position had no impact, but starter 4, batches 2 and 4 did.
+Thus we remove position and do ANOVA
 
 ```{r}
-interaction.plot(data$acidity,data$starter,data$batch)
+model <- aov(acidity ~ factor(starter) + factor(batch), data=data)
+summary(model)
 ```
+
+Indeed both starter and batch are important factors, but starter is more significant
+p = 4.82e-06 < p = 0.000735
+
+```{r}
+t.test(data[data$starter==1,]$acidity, data[data$starter==4,]$acidity, var.equal=TRUE)
+```
+
+All T-Test of the samples of starter 4 with the other samples showed significant difference
+p value = 0.003928, 0.002609, 0.001324,0.0007191
+Thus, sample 4 makes significant difference.
 
 **c)** Applying the Friedman test:
 
-Because we have severall batches for each starter position and not one
-We can't use the Friedman test
-
-However, if we modify our data by averaging the acidity of every batch
-to have one element per starter sample, we could do it.
-Alternatively, we could also do the Friedman test five times, one for every batch
-
-Using https://search.r-project.org/R/refmans/stats/html/friedman.test.html
-The syntax should be something like this (we also need to filter the extra samples)
+Applying Friedman to the model from b)
 
 ```{r}
-# friedman_test(data, acidity ~ starter)
-# friedman.test(acidity ~ starter, data = data)
+# The values, groups and blocks refers to acidity, starter and batch in the Friedman test
+result_c = friedman.test(acidity ~ starter | batch, data=data)
+print(result_c)
 ```
 
-
+Because p =  0.01028 < 0.05, that means that there is some effect of starter on acidity
 
 **d)**  Performing a mixed effects analysis:
 
-Load library
+Load required library
 ```{r}
-#library("devtools"); 
-#library("lme4")
+library("lme4")
+
+lm(acidity ~ factor(starter) + factor(batch), data = data)
+lmer(acidity  ~ factor(starter) + factor(batch) + (1|position), data = data)
 ```
 
-Getting error Error: Failed to install 'lme4' from GitHub:
-Could not find tools necessary to compile a package
-
-Syntax will be something like this
-https://www.rdocumentation.org/packages/lme4/versions/1.1-35.1/topics/lmer
-
-```{r}
-# model <- lme(acidity ~ starter + (1|position), data = data)
-```
+The code provides the same result for both scenarios with "starter" 4 and "batches" 2 and 4 being significant (away from 0).
+The code designates "starter 1" as the intercept, serving as the reference point for comparison with other values.
