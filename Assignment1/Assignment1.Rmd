@@ -188,7 +188,7 @@ for (mu in seq(0, 100, by = 1)) {
 }
 
 # Display mu values for which null hypothesis is not rejected
-cat("Mu values for which null hypothesis is not rejected:", mu_values_not_rejected, "\n")
+cat("Mu values for which null hypothesis is not rejected:", mu_values_not_rejected)
 
 ```
 
@@ -205,7 +205,8 @@ data <- read.csv("Ice_cream.csv")
 male_scores <- data$video[data$female == 0]
 female_scores <- data$video[data$female == 1]
 # Perform two-sample t-test
-t_test_gender <- t.test(male_scores, female_scores, alternative = "g"); t_test_gender
+t_test_gender <- t.test(male_scores, female_scores, alternative = "g");
+t_test_gender
 ```
 
 The t-test yields a p-value of 0.04, indicating that there is a significant difference in mean scores between male and female students.
@@ -296,7 +297,8 @@ So the 2nd factor (rate) has a significant effect in the additive model. This is
 mean_hemoglobin <- aggregate(hemoglobin ~ rate + method,
 data = hemoglobin_data, FUN = mean)
 # Find combination yielding highest hemoglobin
-max_hemoglobin <- mean_hemoglobin[which.max(mean_hemoglobin$hemoglobin), ]; max_hemoglobin
+max_hemoglobin <- mean_hemoglobin[which.max(mean_hemoglobin$hemoglobin), ];
+max_hemoglobin
 ```
 
 ```{r}
@@ -388,9 +390,8 @@ p = 4.82e-06 < p = 0.000735
 t.test(data[data$starter==1,]$acidity, data[data$starter==4,]$acidity, var.equal=TRUE)
 ```
 
-All T-Test of the samples of starter 4 with the other samples showed significant difference
-p value = 0.003928, 0.002609, 0.001324,0.0007191
-Thus, sample 4 makes significant difference.
+All T-Test of the samples of starter 4 with the other samples showed significant p values
+= 0.003928, 0.002609, 0.001324,0.0007191 (only starter 1 vs. starter 4 shown). Thus, sample 4 makes significant difference.
 
 **c)** Applying the Friedman test:
 
