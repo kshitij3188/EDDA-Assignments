@@ -17,13 +17,45 @@ fruitflies <- read.table("fruitflies.txt", header = TRUE)
 
 # Add Logarithm of Longevity
 fruitflies$loglongevity <- log(fruitflies$longevity)
+
+longevity <- fruitflies$longevity
+activity <- fruitflies$activity
+thorax <- fruitflies$thorax
+loglongevity <- fruitflies$loglongevity
+
+# Prepare data for plotting
+long1 <- fruitflies[fruitflies$activity == "isolated",]$loglongevity
 ```
 
 
 ```{r,fig.margin = TRUE,fig.width=6,fig.height=3,fig.align="center"}
 # Do basic plots
+plot(long1,size1,col="red",pch=3);points(long2,size2,col="blue",pch=3);points(long3,size3,col="green",pch=3)
 
+legend(4.2,0.75,legend=c('Isolated','Low','High'),pch=c(3,3,3),col=c('red','blue','green'))
 ```
+
+
+```{r}
+options(digits = 3)
+# Perform two-way ANOVA
+activity=as.factor(activity);
+loglongevity=as.factor(loglongevity);
+# Print ANOVA table
+fruitflies_aov=lm(hemoglobin_data$hemoglobin~activity*loglongevity); anova(fruitflies_aov)
+
+options(digits = 3)
+# Perform one-way ANOVA ignoring the variable method
+fruitflies_aov <- aov(loglongevity ~ activity, data=fruitflies)
+# Print ANOVA table
+print(summary(fruitflies_aov))
+```
+
+Our one way anova test shows we have significant impact of sexual activity (p=XXXXX). The estimates longevities for these conditions, mean of mean(long1),mean(long2),mean(long3) are 4.12, 4 and 3.6
+
+TODO Do t test to show the difference in means is significant!!!
+
+**b)**
 
 
 
