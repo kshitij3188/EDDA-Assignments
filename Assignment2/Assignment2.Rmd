@@ -32,8 +32,9 @@ fruitflies$loglongevity <- log(fruitflies$longevity)
 **a)** 
 
 ```{r}
-
-``` 
+# Load the data
+birthweights <- read.table("Birthweight.csv", header = TRUE, sep=",")
+```
 
 
 # Exercise 3. School awards
@@ -41,5 +42,6 @@ fruitflies$loglongevity <- log(fruitflies$longevity)
 **a)** 
 
 ```{r}
-
-``` 
+# Load the data
+awards <- read.table("awards.txt", header = TRUE)
+```
