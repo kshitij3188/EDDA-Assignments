@@ -1,0 +1,45 @@
+---
+title: "Assignment 2"
+author: "Kshitij Kavimandan, Pablo Alves, Pooja Mangal (Group 15)"
+date: "11 March 2024"
+output: pdf_document
+fontsize: 11pt
+highlight: tango
+---
+
+## Exercise 1. Fruit flies
+
+**a)** 
+
+```{r}
+# Load the data
+fruitflies <- read.table("fruitflies.txt", header = TRUE)
+
+# Add Logarithm of Longevity
+fruitflies$loglongevity <- log(fruitflies$longevity)
+```
+
+
+```{r,fig.margin = TRUE,fig.width=6,fig.height=3,fig.align="center"}
+# Do basic plots
+
+```
+
+
+
+# Exercise 2. Birthweights
+
+**a)** 
+
+```{r}
+
+``` 
+
+
+# Exercise 3. School awards
+
+**a)** 
+
+```{r}
+
+``` 
