@@ -18,45 +18,113 @@ fruitflies <- read.table("fruitflies.txt", header = TRUE)
 # Add Logarithm of Longevity
 fruitflies$loglongevity <- log(fruitflies$longevity)
 
-longevity <- fruitflies$longevity
-activity <- fruitflies$activity
-thorax <- fruitflies$thorax
-loglongevity <- fruitflies$loglongevity
+attach(fruitflies)
 
 # Prepare data for plotting
 long1 <- fruitflies[fruitflies$activity == "isolated",]$loglongevity
+size1 <- fruitflies[fruitflies$thorax == "isolated",]$loglongevity
 ```
 
 
 ```{r,fig.margin = TRUE,fig.width=6,fig.height=3,fig.align="center"}
 # Do basic plots
-plot(long1,size1,col="red",pch=3);points(long2,size2,col="blue",pch=3);points(long3,size3,col="green",pch=3)
+#plot(long1,size1,col="red",pch=3);points(long2,size2,col="blue",pch=3);points(long3,size3,col="green",pch=3)
 
-legend(4.2,0.75,legend=c('Isolated','Low','High'),pch=c(3,3,3),col=c('red','blue','green'))
+#legend(4.2,0.75,legend=c('Isolated','Low','High'),pch=c(3,3,3),col=c('red','blue','green'))
 ```
 
 
 ```{r}
-options(digits = 3)
-# Perform two-way ANOVA
-activity=as.factor(activity);
-loglongevity=as.factor(loglongevity);
-# Print ANOVA table
-fruitflies_aov=lm(hemoglobin_data$hemoglobin~activity*loglongevity); anova(fruitflies_aov)
+attach(fruitflies)
 
-options(digits = 3)
-# Perform one-way ANOVA ignoring the variable method
-fruitflies_aov <- aov(loglongevity ~ activity, data=fruitflies)
-# Print ANOVA table
-print(summary(fruitflies_aov))
+# Perform ANOVA to test for the effect of sexual activity on longevity
+anova_model <- aov(loglongevity ~ activity, data = fruitflies)
+summary(anova_model)
+
+# Estimated longevities for the three conditions
+means <- aggregate(loglongevity ~ activity, data = fruitflies, FUN = mean)
+print(means)
+
+
+# Subset the data for 'high' and 'low' activity levels
+high_activity <- loglongevity[activity == "high"]
+low_activity <- loglongevity[activity == "isolated"]
+
+# Perform the t-test
+t_test_result <- t.test(high_activity, low_activity)
+
+# Print the result
+print(t_test_result)
 ```
 
-Our one way anova test shows we have significant impact of sexual activity (p=XXXXX). The estimates longevities for these conditions, mean of mean(long1),mean(long2),mean(long3) are 4.12, 4 and 3.6
+Our one-way ANOVA test shows a significant impact of sexual activity (p=1.8e-07). The estimated longevity for these conditions, with means of isolated, low, and high, are 4.12, 4, and 3.6, respectively.
 
-TODO Do t test to show the difference in means is significant!!!
+The Welch Two Sample t-test results indicate a highly significant difference in mean log longevity between the "high" and "low" activity groups of fruit flies (p < 0.0001). This suggests that activity level significantly impacts fruit fly longevity, with flies exhibiting lower activity levels tending to live longer.
 
 **b)**
 
+```{r}
+# Perform ANCOVA to include thorax length as an explanatory variable
+ancova_model <- lm(loglongevity ~ activity + thorax, data = fruitflies)
+summary(ancova_model)
+
+# Calculate estimated longevities for the three groups with average thorax lengths
+#avg_thorax <- mean(thorax)
+#estimated_longevities <- predict(ancova_model, newdata = data.frame(activity = levels(activity), thorax = avg_thorax))
+```
+
+**c)**
+
+```{r}
+# Load necessary packages
+library(ggplot2)
+
+# Scatterplot of longevity against thorax length, colored by activity
+ggplot(fruitflies, aes(x = thorax, y = longevity, color = activity)) +
+  geom_point() +
+  labs(title = "Longevity vs. Thorax Length by Activity",
+       x = "Thorax Length",
+       y = "Longevity (Days)",
+       color = "Activity") +
+  theme_minimal()
+
+# Test for the similarity of dependence using ANCOVA
+model_c <- lm(longevity ~ activity * thorax, data = fruitflies)
+summary(model_c)
+```
+
+**d)**
+
+```{r}
+# Load necessary packages
+library(ggplot2)
+
+# Scatterplot of longevity against thorax length, colored by activity
+ggplot(fruitflies, aes(x = thorax, y = longevity, color = activity)) +
+  geom_point() +
+  labs(title = "Longevity vs. Thorax Length by Activity",
+       x = "Thorax Length",
+       y = "Longevity (Days)",
+       color = "Activity") +
+  theme_minimal()
+
+# Test for the similarity of dependence using ANCOVA
+model_c <- lm(longevity ~ activity * thorax, data = fruitflies)
+summary(model_c)
+```
+
+
+**e)**
+
+```{r}
+# Fit ANCOVA model
+ancova_model <- lm(longevity ~ activity + thorax, data = fruitflies)
+
+# Summary of ANCOVA model
+summary(ancova_model)
+```
+
+The R-squared values suggest that the log-longevity model explains a higher proportion of the variance in longevity compared to the model using longevity as the response variable. This implies that the log transformation has helped capture more of the variability in the data, resulting in a better-fitting model.
 
 
 # Exercise 2. Birthweights
