@@ -17,20 +17,18 @@ fruitflies <- read.table("fruitflies.txt", header = TRUE)
 
 # Add Logarithm of Longevity
 fruitflies$loglongevity <- log(fruitflies$longevity)
-
-attach(fruitflies)
-
-# Prepare data for plotting
-long1 <- fruitflies[fruitflies$activity == "isolated",]$loglongevity
-size1 <- fruitflies[fruitflies$thorax == "isolated",]$loglongevity
 ```
 
 
-```{r,fig.margin = TRUE,fig.width=6,fig.height=3,fig.align="center"}
-# Do basic plots
-#plot(long1,size1,col="red",pch=3);points(long2,size2,col="blue",pch=3);points(long3,size3,col="green",pch=3)
+```{r, fig.margin = TRUE, fig.width=4,fig.height=3,fig.align="center", warning=FALSE}
+# Create the ggplot
+library(ggplot2)
 
-#legend(4.2,0.75,legend=c('Isolated','Low','High'),pch=c(3,3,3),col=c('red','blue','green'))
+ggplot(data = fruitflies, aes(x = thorax, y = loglongevity, color = activity, shape = activity)) +
+  geom_point(size = 2) +
+  labs(x = "Thorax", y = "Longevity", color = "Activity", shape = "Activity") +
+  theme_minimal() +
+  theme(legend.position = c(0.85, 0.2))
 ```
 
 
@@ -42,40 +40,40 @@ anova_model <- aov(loglongevity ~ activity, data = fruitflies)
 summary(anova_model)
 
 # Estimated longevities for the three conditions
-means <- aggregate(loglongevity ~ activity, data = fruitflies, FUN = mean)
-print(means)
-
-
-# Subset the data for 'high' and 'low' activity levels
-high_activity <- loglongevity[activity == "high"]
-low_activity <- loglongevity[activity == "isolated"]
-
-# Perform the t-test
-t_test_result <- t.test(high_activity, low_activity)
-
-# Print the result
-print(t_test_result)
+mean_longevity <- aggregate(loglongevity ~ activity, data = fruitflies, FUN = mean)
+mean_longevity$estimated_longevity <- exp(mean_longevity$loglongevity)
+print(mean_longevity)
 ```
 
-Our one-way ANOVA test shows a significant impact of sexual activity (p=1.8e-07). The estimated longevity for these conditions, with means of isolated, low, and high, are 4.12, 4, and 3.6, respectively.
-
-The Welch Two Sample t-test results indicate a highly significant difference in mean log longevity between the "high" and "low" activity groups of fruit flies (p < 0.0001). This suggests that activity level significantly impacts fruit fly longevity, with flies exhibiting lower activity levels tending to live longer.
+Our one-way ANOVA test shows a significant impact of sexual activity (p=1.8e-07). The estimated longevity for these conditions, with means of isolated, low, and high, are 61.52, 54.59, and 36.67, respectively.
 
 **b)**
 
 ```{r}
 # Perform ANCOVA to include thorax length as an explanatory variable
 ancova_model <- lm(loglongevity ~ activity + thorax, data = fruitflies)
-summary(ancova_model)
+print(ancova_model)
 
-# Calculate estimated longevities for the three groups with average thorax lengths
-#avg_thorax <- mean(thorax)
-#estimated_longevities <- predict(ancova_model, newdata = data.frame(activity = levels(activity), thorax = avg_thorax))
+# Calculate estimated longevity for the three groups with average thorax lengths
+# Calculate the average thorax length
+avg_thorax <- mean(thorax)
+ 
+# Create a data frame with average thorax length for each group
+new_data <- data.frame(thorax = avg_thorax, activity = c("isolated", "low", "high"))
+
+# Predict log-longevity for each group with average thorax length
+predictions <- predict(ancova_model, newdata = new_data, interval = "confidence", level = 0.95)
+
+# Print the estimated longevities for each group
+est_longevities <- exp(predictions)
+est_longevities
 ```
+
+The estimated log-longevity for fruit flies subjected to isolated conditions is 59.45, whereas for those with low and high sexual activity, the estimates are 52.51 and 39.46, respectively. This suggests that sexual activity appears to decrease longevity in fruit flies, with a notable decrease observed in groups with higher sexual activity levels.
 
 **c)**
 
-```{r}
+```{r, fig.margin = TRUE, fig.width=5,fig.height=3,fig.align="center"}
 # Load necessary packages
 library(ggplot2)
 
@@ -89,29 +87,15 @@ ggplot(fruitflies, aes(x = thorax, y = longevity, color = activity)) +
   theme_minimal()
 
 # Test for the similarity of dependence using ANCOVA
-model_c <- lm(longevity ~ activity * thorax, data = fruitflies)
+model_c <- lm(loglongevity ~ activity * thorax, data = fruitflies)
 summary(model_c)
 ```
 
 **d)**
 
-```{r}
-# Load necessary packages
-library(ggplot2)
+The comparison between the analyses without and with thorax length reveals distinct insights into the factors influencing fruit fly longevity. The ANOVA without thorax length indicates a significant impact of sexual activity on longevity (p < 0.05), with estimated longevities varying across activity levels. The Welch Two Sample t-test further confirms significant differences between "high" and "low" activity groups. Conversely, the ANCOVA with thorax length highlights significant effects of both sexual activity and thorax length on longevity (p < 0.05), while adjusting for potential confounding variables. The adjusted R-squared value of 0.7093 suggests a satisfactory fit to the data, with coefficients indicating the individual contributions of activity and thorax length to longevity. Based on these considerations, the ANCOVA with thorax length seems to provide a more comprehensive and informative analysis. It not only accounts for potential confounding variables but also offers insights into the independent effects of sexual activity and thorax length on longevity.
 
-# Scatterplot of longevity against thorax length, colored by activity
-ggplot(fruitflies, aes(x = thorax, y = longevity, color = activity)) +
-  geom_point() +
-  labs(title = "Longevity vs. Thorax Length by Activity",
-       x = "Thorax Length",
-       y = "Longevity (Days)",
-       color = "Activity") +
-  theme_minimal()
-
-# Test for the similarity of dependence using ANCOVA
-model_c <- lm(longevity ~ activity * thorax, data = fruitflies)
-summary(model_c)
-```
+Therefore, to understand the relationship between sexual activity, thorax length, and longevity in fruit flies, the ANCOVA with thorax length would be the preferred analysis.
 
 
 **e)**
@@ -139,9 +123,82 @@ birthweights <- read.table("Birthweight.csv", header = TRUE, sep=",")
 
 # Exercise 3. School awards
 
+```{r, fig.margin = TRUE, fig.width=5,fig.height=3,fig.align="center"}
+# Load the data
+awards <- read.table("awards.txt", header = TRUE)
+
+# Analyze the data
+plot(awards)
+```
+
 **a)** 
 
 ```{r}
-# Load the data
-awards <- read.table("awards.txt", header = TRUE)
+# Perform Poisson regression without considering the variable math
+poisson_model <- glm(num_awards ~ prog, family=poisson, data=awards)
+# Display the summary of the model
+summary(poisson_model)
+
+# Estimate numbers of awards for all three types of programs
+prog_types <- unique(awards$prog)
+for (prog_type in prog_types) {
+  awards_estimate <- exp(predict(poisson_model, newdata = data.frame(prog = prog_type), type = "response"))
+  cat("Estimated number of awards for program type", prog_type, ":", awards_estimate, "\n")
+}
+```
+
+**b)**
+The Kruskal-Wallis test is appropriate for situations where the dependent variable is ordinal or continuous and the independent variable is categorical with two or more groups. In the context of the provided problem, where the dependent variable is the number of awards (which is count data) and the independent variable is the type of program (categorical with three groups: vocational, general, and academic), the Kruskal-Wallis test can indeed be used to determine if there are differences in the number of awards earned across different types of programs.
+
+```{r}
+# Perform the Kruskal-Wallis test
+kruskal_test <- kruskal.test(num_awards ~ prog, data = awards)
+
+# Display the results of the test
+kruskal_test
+```
+
+**c)**
+
+```{r}
+# Perform Poisson regression with prog, math, and their interaction
+poisson_model_with_math <- glm(num_awards ~ prog * math, family = "poisson", data = awards)
+
+# Display the summary of the model
+summary(poisson_model_with_math)
+```
+
+To determine which program type is best for the number of awards, we need to examine the coefficient estimates for prog and interpret their significance. A positive coefficient for a particular program type indicates that students in that program type tend to earn more awards compared to the reference category, while a negative coefficient indicates the opposite.
+
+The interaction term (prog * math) helps to assess whether the effect of program type on the number of awards depends on the math score of the student.
+
+```{r}
+# Perform Poisson regression with prog, math, and their interaction
+poisson_model_with_math <- glm(num_awards ~ prog * math, family = "poisson", data = awards)
+
+# Display the summary of the model
+print(poisson_model_with_math)
+
+# Convert 'prog' to a factor variable
+awards$prog <- factor(awards$prog)
+
+# Perform Poisson regression with prog, math, and their interaction
+poisson_model_prog_factor <- glm(num_awards ~ prog * math, family = "poisson", data = awards)
+
+print(poisson_model_prog_factor)
+
+```
+
+
+Based on the model's results, none of the program types (vocational, general, academic) show a statistically significant effect on the number of awards earned by students. Additionally, the interaction between program type and math score does not significantly influence the number of awards.
+
+```{r}
+# Create a data frame with the predictor values
+new_data <- data.frame(prog = c(1, 2, 3), math = 56)
+
+# Predict the numbers of awards using the model
+predicted_awards <- predict(poisson_model_with_math, newdata = new_data, type = "response")
+
+# Display the predicted numbers of awards
+predicted_awards
 ```
