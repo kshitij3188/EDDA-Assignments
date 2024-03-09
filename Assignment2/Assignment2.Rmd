@@ -52,7 +52,7 @@ Our one-way ANOVA test shows a significant impact of sexual activity (p=1.8e-07)
 ```{r}
 # Perform ANCOVA to include thorax length as an explanatory variable
 ancova_model <- lm(loglongevity ~ activity + thorax, data = fruitflies)
-print(ancova_model)
+summary(ancova_model)
 
 # Calculate estimated longevity for the three groups with average thorax lengths
 # Calculate the average thorax length
@@ -108,7 +108,7 @@ ancova_model <- lm(longevity ~ activity + thorax, data = fruitflies)
 summary(ancova_model)
 ```
 
-The R-squared values suggest that the log-longevity model explains a higher proportion of the variance in longevity compared to the model using longevity as the response variable. This implies that the log transformation has helped capture more of the variability in the data, resulting in a better-fitting model.
+Using the logarithm of longevity as the response variable resulted in a lower residual standard error, higher R-squared values (both multiple and adjusted), and a higher F-statistic compared to using longevity as the response variable. These metrics indicate that the log(longevity) model explains more variance in the data and fits the data better than the model with longevity.
 
 
 # Exercise 2. Birthweights
