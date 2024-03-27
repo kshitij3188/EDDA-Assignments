@@ -37,7 +37,7 @@ attach(fruitflies)
 
 # Perform ANOVA to test for the effect of sexual activity on longevity
 anova_model <- aov(loglongevity ~ activity, data = fruitflies)
-summary(anova_model)
+print(anova_model)
 
 # Estimated longevities for the three conditions
 mean_longevity <- aggregate(loglongevity ~ activity, data = fruitflies, FUN = mean)
@@ -52,7 +52,8 @@ Our one-way ANOVA test shows a significant impact of sexual activity (p=1.8e-07)
 ```{r}
 # Perform ANCOVA to include thorax length as an explanatory variable
 ancova_model <- lm(loglongevity ~ activity + thorax, data = fruitflies)
-summary(ancova_model)
+print(ancova_model)
+summary(ancova_model)$r.squared
 
 # Calculate estimated longevity for the three groups with average thorax lengths
 # Calculate the average thorax length
@@ -88,7 +89,8 @@ ggplot(fruitflies, aes(x = thorax, y = longevity, color = activity)) +
 
 # Test for the similarity of dependence using ANCOVA
 model_c <- lm(loglongevity ~ activity * thorax, data = fruitflies)
-summary(model_c)
+print(model_c)
+summary(model_c)$r.squared
 ```
 
 **d)**
@@ -105,7 +107,8 @@ Therefore, to understand the relationship between sexual activity, thorax length
 ancova_model <- lm(longevity ~ activity + thorax, data = fruitflies)
 
 # Summary of ANCOVA model
-summary(ancova_model)
+print(ancova_model)
+summary(ancova_model)$r.squared
 ```
 
 Using the logarithm of longevity as the response variable resulted in a lower residual standard error, higher R-squared values (both multiple and adjusted), and a higher F-statistic compared to using longevity as the response variable. These metrics indicate that the log(longevity) model explains more variance in the data and fits the data better than the model with longevity.
@@ -115,11 +118,132 @@ Using the logarithm of longevity as the response variable resulted in a lower re
 
 **a)** 
 
-```{r}
+```{r, fig.margin = TRUE, fig.width=4,fig.height=3,fig.align="center", warning=FALSE}
 # Load the data
-birthweights <- read.table("Birthweight.csv", header = TRUE, sep=",")
+d <- read.table("Birthweight.csv", header = TRUE, sep=",")
+
+
+library(stats)
+model = lm(d$Birthweight ~ ., data = d)
+valuesH <- hatvalues(model)
+plot(valuesH)
+
+model = lm(d$Birthweight ~ ., data = d)
+cooksD <- cooks.distance(model)
+plot(cooksD,main = "Cooks Distance of points")
+
+library(car)
+threshold = 5
+model = lm(Birthweight ~ ., data = d)
+values <- vif(model)
+print(values[values > threshold])
 ```
 
+POTENTIAL POINTS: To find potential points we can use the hatvalues() function from the stats package on our model, which computes the leverage of each of the observations on the model. As our plot shows, there are no points standing out, which suggests that our data does not have any observations with an outlying value in the explanatory variable. INFLUENCE POINTS: We can find influence points by computing the cook distance of our data and looking for big values. As our Cooks Distance plot shows, there are many influence points (at the very least, the 4 points with Cook distance above 0.15). COLLINEARITY: To find linear relations between explanatory variables we can compute the  variance inflation factors (VIF). For this we use the package car. We have found two collinear variables: mage and fage
+
+
+**b)** 
+
+```{r, fig.margin = TRUE, fig.width=4,fig.height=3,fig.align="center", warning=FALSE}
+db = d
+p_value = 1
+
+# Step down method: Loop until we can't get rid of more variables
+while (p_value > 0.05){
+	# Get variable with highest p_value
+	model = lm(Birthweight ~ ., data = db)
+	s = summary(model)
+	v_highest_p = rownames(s$coefficients)[which.max(s$coefficients[,4])]
+	p_value = max(s$coefficients[, "Pr(>|t|)"])
+	
+	# If its bigger than 0.05 remove it!	
+	if (p_value > 0.05) {
+		db <- db[, !names(db) %in% v_highest_p]
+		}
+
+}
+
+print(s)
+```
+This method, while giving a reasonable result, took many steps to get rid of "ID" and "mage35" despite being not relevant. Our final model is left with Headcirc and Gestation, with significant p values of 1.77e-05 and 4.85e-06.
+
+**c)** 
+
+```{r, fig.margin = TRUE, fig.width=4,fig.height=3,fig.align="center", warning=FALSE}
+
+model = lm(d$Birthweight ~ d$Headcirc + d$Gestation, data = d)
+values = data.frame(colMeans(d))
+prediction  <- colMeans(data.frame(predict(model, values , interval = "prediction", level = 0.95)))
+confidence <- colMeans(data.frame(predict(model, newdata = values, interval = "confidence")))
+print(confidence)
+```
+
+To determine the 95% CI and prediction intervals with the resulting model for the average values of all the predictors in that model,we simply declare the model, get the average values and use the predict funciton. We get confidence interval 3.312857. We get prediction interval 3.312857. As expected, the prediction interval is bigger.
+
+**d)** 
+```{r, fig.margin = TRUE, fig.width=4,fig.height=2.5,fig.align="center", warning=FALSE}
+library(glmnet)
+
+x=as.matrix(subset(d, select=-c(Birthweight)))		#remove the response variable
+y=as.double(as.matrix(d$Birthweight)) 			#only the response variable
+
+train=sample(1:nrow(x),0.67*nrow(x)) 			# train by using 2/3 of the data
+x.train=x[train,]; y.train=y[train]				# data to train
+x.test=x[-train,]; y.test=y[-train]				# data to test the prediction quality
+
+lasso.model=glmnet(x.train,y.train,alpha=1)
+cv.lasso=cv.glmnet(x.train,y.train,alpha=1,type.measure="mse")
+par(mar = c(4.1, 4.4, 2, 1.9))
+plot(cv.lasso)							# the best lambda by cross-validation
+plot(cv.lasso$glmnet.fit,xvar="lambda",label=T)
+
+lambda.min=cv.lasso$lambda.min
+lambda.1se=cv.lasso$lambda.1se
+
+coef(lasso.model,s=cv.lasso$lambda.1se) 			#beta’s for the best lambda
+
+y.pred=predict(lasso.model,s=lambda.1se,newx=x.test)	#predict for test (with lambda.1se!)
+mse.lasso=mean((y.test-y.pred)^2)				#mse for the predicted test rows
+print(mean(y.pred))
+```
+For predicting the response Birthweight with default parameters as in the lecture and lambda=lambda.1se), we follow the process from Lecture 9 slide 19, and then averaging we get a birthweight of 3.298647, a little higher than with the previous method.
+
+**e)** 
+```{r, fig.margin = FALSE, fig.width=4,fig.height=2.5,fig.align="center", warning=FALSE}
+de = subset(d, select=c(lowbwt,Gestation,smoker,mage35))
+cor.test(de$smoker,de$lowbwt)
+cor.test(de$mage35,de$lowbwt)
+par(mar = c(4, 4,1, 4))
+plot(de$smoker,de$lowbwt)
+```
+
+At this level of resolution, neither smoking nor older mothers seem to have lighter babies, for their correlations are respectively positive (0.2530122) and negligible (0.09933993). The additional plot shows this further.
+
+**f)** 
+```{r}
+de = subset(d, select=c(lowbwt,Gestation,smoker,mage35))
+model <- glm(de$lowbwt~de$Gestation+de$smoker+de$mage35, family="binomial", data=de)
+exp(coef(model))
+```
+To get the logistic model, we use the glm function, while to interpret the results in terms of odds we exponentiate the coefficients. Here, old mothers and smokers are 1.380242 and 232.648 times more likely to have a lighter baby (against results in e), which is reasonable, while with additional gestation time, it is 0.2314776 time more likely to have a lighter baby (meaning it is less likely).
+
+**h)**
+```{r}
+final_model <- lm(de$lowbwt~de$smoker*de$Gestation,data=de)
+values <- data.frame(subset(de, Gestation == 40))
+prediction  <- colMeans(data.frame(predict(final_model, values)))
+```
+The probability of low baby weight for each combination of levels of the involved factors and the gestation of 40 weeks is 0.1428571, which is reasonable considering that in our data none of the babies with that gestation were actually underweight.
+
+**i)** 
+```{r}
+table1 <- table(de$smoker,de$lowbwt)
+c_test <- chisq.test(table1)
+
+table2 <- table(de$mage35,de$lowbwt)
+c_test <- chisq.test(table2)
+```
+To apply a contingency table test we can use the table function and apply a Chi-squared test. We get p-values of 0.2308 and 1, which suggest that neither smoking nor older mothers have lighter babies. As seen in other sections, this is incorrect, and shows one disadvantage of this approach, that it is sensitive to a lack of enough data, making it a wrong approach for this case despite its advantage of being simple.
 
 # Exercise 3. School awards
 
@@ -148,7 +272,7 @@ for (prog_type in prog_types) {
 ```
 
 **b)**
-The Kruskal-Wallis test is appropriate for situations where the dependent variable is ordinal or continuous and the independent variable is categorical with two or more groups. In the context of the provided problem, where the dependent variable is the number of awards (which is count data) and the independent variable is the type of program (categorical with three groups: vocational, general, and academic), the Kruskal-Wallis test can indeed be used to determine if there are differences in the number of awards earned across different types of programs.
+The Kruskal-Wallis test is appropriate for situations where the dependent variable is ordinal or continuous and the independent variable is categorical with two or more groups. In the context of the provided problem, where the dependent variable is the number of awards (count data) and the independent variable is the type of program (categorical), the Kruskal-Wallis test can indeed be used.
 
 ```{r}
 # Perform the Kruskal-Wallis test
@@ -168,9 +292,9 @@ poisson_model_with_math <- glm(num_awards ~ prog * math, family = "poisson", dat
 summary(poisson_model_with_math)
 ```
 
-To determine which program type is best for the number of awards, we need to examine the coefficient estimates for prog and interpret their significance. A positive coefficient for a particular program type indicates that students in that program type tend to earn more awards compared to the reference category, while a negative coefficient indicates the opposite.
+To assess the best program type for award numbers, analyze coefficient estimates for `prog` and interpret their significance. A positive coefficient suggests students in that program type typically earn more awards than the reference category, while a negative coefficient implies the opposite.
 
-The interaction term (prog * math) helps to assess whether the effect of program type on the number of awards depends on the math score of the student.
+The interaction term (`prog * math`) helps determine if the program type effect on award numbers depends on the student's math score.
 
 ```{r}
 # Perform Poisson regression with prog, math, and their interaction
@@ -190,7 +314,7 @@ print(poisson_model_prog_factor)
 ```
 
 
-Based on the model's results, none of the program types (vocational, general, academic) show a statistically significant effect on the number of awards earned by students. Additionally, the interaction between program type and math score does not significantly influence the number of awards.
+Based on the model's results, none of the program types show a statistically significant effect on the number of awards earned by students. Additionally, the interaction between program type and math score does not significantly influence the number of awards.
 
 ```{r}
 # Create a data frame with the predictor values
